@@ -70,4 +70,4 @@ The application includes 30 sample questions covering all four AWS CLF-C02 exam 
 
 ## License
 
-This project is for educational purposes.
+This project is for educational purposes. But I can write any project you need for you at a fair price. Please contact me under this E-Mail: rezakhani.mojgan@gmail.com
