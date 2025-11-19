@@ -21,7 +21,7 @@ A Flask-based web application for practicing AWS Certified Cloud Practitioner (C
 
 1. Clone the repository:
    ```bash
-   git clone <your-repo-url>
+   git clone mrezakhani
    cd aws-certification-trainer
    ```
 
