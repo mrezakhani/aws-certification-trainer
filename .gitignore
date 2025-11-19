@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Development scripts (not needed for running the app)
+create_sample_db.py
+aws_quiz_db.py
+aws_quiz_trainer.py
+aws_quiz_trainer_db.py
+import_github_questions.py
+add_explanations.py
+github_questions.md
+github_readme.md

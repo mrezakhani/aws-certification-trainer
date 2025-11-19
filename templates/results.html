@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Results - AWS CLF-C02</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Quiz Results</h1>
+        </header>
+
+        <div class="results-card {{ 'passed' if passed else 'failed' }}">
+            <div class="score-circle">
+                <div class="score-value">{{ "%.0f"|format(percentage) }}%</div>
+                <div class="score-label">Score</div>
+            </div>
+
+            <div class="score-details">
+                <p class="score-fraction">{{ score }} / {{ total }} correct</p>
+                <p class="pass-status">
+                    {% if passed %}
+                    <span class="pass-badge">PASS</span>
+                    Congratulations! You would pass the exam!
+                    {% else %}
+                    <span class="fail-badge">NEEDS IMPROVEMENT</span>
+                    You need 70% to pass. Keep studying!
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        <div class="domain-breakdown">
+            <h3>Performance by Domain</h3>
+            <div class="domain-scores">
+                {% for domain, scores in domain_scores.items() %}
+                <div class="domain-score-item">
+                    <div class="domain-score-header">
+                        <span class="domain-name">{{ domain }}</span>
+                        <span class="domain-percentage">
+                            {{ "%.0f"|format(scores.correct / scores.total * 100 if scores.total > 0 else 0) }}%
+                        </span>
+                    </div>
+                    <div class="domain-bar">
+                        <div class="domain-bar-fill {{ 'good' if scores.correct / scores.total >= 0.7 else 'needs-work' }}"
+                             style="width: {{ (scores.correct / scores.total * 100) if scores.total > 0 else 0 }}%">
+                        </div>
+                    </div>
+                    <div class="domain-score-detail">
+                        {{ scores.correct }} / {{ scores.total }} correct
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="results-actions">
+            <a href="/review" class="btn btn-secondary">Review Answers</a>
+            {% set missed_count = answers | selectattr('is_correct', 'equalto', false) | list | length %}
+            {% if missed_count > 0 %}
+            <a href="/quiz/missed" class="btn btn-warning">Practice {{ missed_count }} Missed</a>
+            {% endif %}
+            <a href="/" class="btn btn-primary">Take Another Quiz</a>
+        </div>
+
+        <div class="study-tips">
+            <h3>Study Tips</h3>
+            <ul>
+                {% if domain_scores %}
+                {% for domain, scores in domain_scores.items() %}
+                {% if scores.total > 0 and scores.correct / scores.total < 0.7 %}
+                <li>Focus more on <strong>{{ domain }}</strong> - you scored {{ "%.0f"|format(scores.correct / scores.total * 100) }}%</li>
+                {% endif %}
+                {% endfor %}
+                {% endif %}
+                <li>Review AWS documentation for services you're unsure about</li>
+                <li>Practice with hands-on labs in AWS Free Tier</li>
+                <li>Take notes on concepts you find difficult</li>
+            </ul>
+        </div>
+
+        <footer>
+            <p>Keep practicing! Consistency is key to passing the AWS CLF-C02 exam.</p>
+        </footer>
+    </div>
+</body>
+</html>

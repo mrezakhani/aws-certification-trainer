@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS CLF-C02 Quiz Trainer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>AWS Cloud Practitioner</h1>
+            <h2>CLF-C02 Quiz Trainer</h2>
+        </header>
+
+        <div class="stats-card">
+            <h3>Question Bank</h3>
+            <p class="total-questions">{{ stats.total }} Questions Available</p>
+            <div class="domain-list">
+                {% for domain in stats.domains %}
+                <div class="domain-item">
+                    <span class="domain-name">{{ domain.name }}</span>
+                    <span class="domain-count">{{ domain.count }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        {% if stats.needs_practice > 0 or stats.mastered_count > 0 %}
+        <div class="mastery-card">
+            <h3>Your Progress</h3>
+            <div class="mastery-stats">
+                <div class="mastery-stat">
+                    <span class="stat-value">{{ stats.mastered_count }}</span>
+                    <span class="stat-label">Mastered (4/4)</span>
+                </div>
+                <div class="mastery-stat">
+                    <span class="stat-value">{{ stats.needs_practice }}</span>
+                    <span class="stat-label">Need Practice</span>
+                </div>
+                <div class="mastery-stat">
+                    <span class="stat-value">{{ stats.wrong_count }}</span>
+                    <span class="stat-label">Got Wrong</span>
+                </div>
+            </div>
+            {% if stats.needs_practice > 0 %}
+            <p>You have <strong>{{ stats.needs_practice }}</strong> questions that need more practice (less than 4 correct answers)</p>
+            <div class="missed-actions">
+                <a href="/quiz/missed" class="btn btn-primary">Practice Now</a>
+                <a href="/clear-progress" class="btn btn-secondary" onclick="return confirm('Are you sure you want to clear all progress? This will reset all mastery tracking.')">Reset Progress</a>
+            </div>
+            {% else %}
+            <p class="all-mastered">All attempted questions are mastered!</p>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="quiz-options">
+            <h3>Select Quiz Mode</h3>
+
+            <div class="option-grid">
+                <a href="/quiz?domain=all" class="quiz-option">
+                    <div class="option-icon">&#128218;</div>
+                    <div class="option-title">All Domains</div>
+                    <div class="option-desc">Complete practice test</div>
+                </a>
+
+                <a href="/quiz?domain=Cloud Concepts" class="quiz-option">
+                    <div class="option-icon">&#9729;</div>
+                    <div class="option-title">Cloud Concepts</div>
+                    <div class="option-desc">24% of exam</div>
+                </a>
+
+                <a href="/quiz?domain=Security and Compliance" class="quiz-option">
+                    <div class="option-icon">&#128274;</div>
+                    <div class="option-title">Security</div>
+                    <div class="option-desc">30% of exam</div>
+                </a>
+
+                <a href="/quiz?domain=Technology and Services" class="quiz-option">
+                    <div class="option-icon">&#9881;</div>
+                    <div class="option-title">Technology</div>
+                    <div class="option-desc">34% of exam</div>
+                </a>
+
+                <a href="/quiz?domain=Billing and Pricing" class="quiz-option">
+                    <div class="option-icon">&#128176;</div>
+                    <div class="option-title">Billing</div>
+                    <div class="option-desc">12% of exam</div>
+                </a>
+
+                <a href="/quiz?domain=all&limit=10" class="quiz-option">
+                    <div class="option-icon">&#127922;</div>
+                    <div class="option-title">Quick Quiz</div>
+                    <div class="option-desc">10 random questions</div>
+                </a>
+
+                <a href="/quiz?domain=all&limit=20" class="quiz-option">
+                    <div class="option-icon">&#128336;</div>
+                    <div class="option-title">Medium Quiz</div>
+                    <div class="option-desc">20 random questions</div>
+                </a>
+
+                <a href="/quiz?domain=all&limit=65" class="quiz-option highlight">
+                    <div class="option-icon">&#127942;</div>
+                    <div class="option-title">Exam Simulation</div>
+                    <div class="option-desc">65 questions like real exam</div>
+                </a>
+            </div>
+        </div>
+
+        <div class="info-card">
+            <h3>Exam Information</h3>
+            <ul>
+                <li><strong>Exam Code:</strong> CLF-C02</li>
+                <li><strong>Questions:</strong> 65 (50 scored, 15 unscored)</li>
+                <li><strong>Time:</strong> 90 minutes</li>
+                <li><strong>Passing Score:</strong> 700/1000 (approximately 70%)</li>
+                <li><strong>Format:</strong> Multiple choice & multiple response</li>
+            </ul>
+        </div>
+
+        <footer>
+            <p>AWS CLF-C02 Quiz Trainer | Good luck with your certification!</p>
+        </footer>
+    </div>
+</body>
+</html>

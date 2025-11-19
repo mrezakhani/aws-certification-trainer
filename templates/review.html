@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Review Answers - AWS CLF-C02</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Review Your Answers</h1>
+            <a href="/results" class="btn btn-secondary">Back to Results</a>
+        </header>
+
+        <div class="review-list">
+            {% for item in review_data %}
+            <div class="review-item {{ 'correct' if item.answer.is_correct else 'incorrect' }}">
+                <div class="review-header">
+                    <span class="review-number">Question {{ item.number }}</span>
+                    <span class="review-status">
+                        {% if item.answer.is_correct %}
+                        <span class="status-correct">&#10004; Correct</span>
+                        {% else %}
+                        <span class="status-incorrect">&#10008; Incorrect</span>
+                        {% endif %}
+                    </span>
+                    <span class="review-domain">{{ item.question.domain }}</span>
+                </div>
+
+                <div class="review-question">
+                    {{ item.question.question }}
+                </div>
+
+                <div class="review-options">
+                    {% for option in item.question.options %}
+                    <div class="review-option
+                        {% if option.letter in item.answer.correct %}correct-answer{% endif %}
+                        {% if option.letter in item.answer.selected and option.letter not in item.answer.correct %}wrong-answer{% endif %}">
+                        <span class="option-letter">{{ option.letter }}</span>
+                        <span class="option-text">{{ option.text }}</span>
+                        {% if option.letter in item.answer.correct %}
+                        <span class="correct-marker">&#10004;</span>
+                        {% endif %}
+                        {% if option.letter in item.answer.selected and option.letter not in item.answer.correct %}
+                        <span class="wrong-marker">&#10008;</span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+
+                {% if item.question.explanation %}
+                <div class="review-explanation">
+                    <strong>Explanation:</strong> {{ item.question.explanation }}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="review-actions">
+            <a href="/results" class="btn btn-secondary">Back to Results</a>
+            <a href="/" class="btn btn-primary">Take Another Quiz</a>
+        </div>
+
+        <footer>
+            <p>Study the explanations carefully to improve your understanding.</p>
+        </footer>
+    </div>
+</body>
+</html>

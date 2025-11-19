@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error - AWS CLF-C02</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Error</h1>
+        </header>
+
+        <div class="error-card">
+            <div class="error-icon">&#9888;</div>
+            <p class="error-message">{{ message }}</p>
+        </div>
+
+        <div class="error-actions">
+            <a href="/" class="btn btn-primary">Go to Home</a>
+        </div>
+
+        <footer>
+            <p>If this error persists, please check the database.</p>
+        </footer>
+    </div>
+</body>
+</html>

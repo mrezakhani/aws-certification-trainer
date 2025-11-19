@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz - AWS CLF-C02</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container quiz-container">
+        <header class="quiz-header">
+            <div class="progress-info">
+                <span id="question-counter">Question <span id="current-num">{{ current }}</span> of <span id="total-num">{{ total }}</span></span>
+                <span id="domain-badge" class="domain-badge">{{ question.domain }}</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill" style="width: {{ (current / total * 100) }}%"></div>
+            </div>
+        </header>
+
+        <main class="quiz-main">
+            <div class="question-card" id="question-card">
+                <h2 class="question-text" id="question-text">{{ question.question }}</h2>
+
+                <div class="options-list" id="options-list">
+                    {% for option in question.options %}
+                    <div class="option-item" data-letter="{{ option.letter }}">
+                        <span class="option-letter">{{ option.letter }}</span>
+                        <span class="option-text">{{ option.text }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="feedback-section" id="feedback-section" style="display: none;">
+                    <div class="feedback-result" id="feedback-result"></div>
+                    <div class="mastery-progress" id="mastery-progress"></div>
+                    <div class="explanation" id="explanation"></div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="quiz-footer">
+            <a href="/" class="btn btn-secondary" id="quit-btn">Quit</a>
+            <button class="btn btn-primary" id="submit-btn" disabled>Submit Answer</button>
+            <button class="btn btn-primary" id="next-btn" style="display: none;">Next Question</button>
+        </footer>
+    </div>
+
+    <script>
+        let selectedAnswers = [];
+        let answered = false;
+        const correctAnswers = {{ question.correct | tojson }};
+        const isMultipleChoice = correctAnswers.length > 1;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            if (isMultipleChoice) {
+                const questionText = document.getElementById('question-text');
+                questionText.innerHTML += ' <span class="multi-select-hint">(Select ' + correctAnswers.length + ' answers)</span>';
+            }
+        });
+
+        // Option selection
+        document.querySelectorAll('.option-item').forEach(item => {
+            item.addEventListener('click', function() {
+                if (answered) return;
+
+                const letter = this.dataset.letter;
+
+                if (isMultipleChoice) {
+                    // Toggle selection for multiple choice
+                    if (selectedAnswers.includes(letter)) {
+                        selectedAnswers = selectedAnswers.filter(a => a !== letter);
+                        this.classList.remove('selected');
+                    } else {
+                        selectedAnswers.push(letter);
+                        this.classList.add('selected');
+                    }
+                } else {
+                    // Single selection
+                    document.querySelectorAll('.option-item').forEach(opt => {
+                        opt.classList.remove('selected');
+                    });
+                    this.classList.add('selected');
+                    selectedAnswers = [letter];
+                }
+
+                // Enable submit button
+                document.getElementById('submit-btn').disabled = selectedAnswers.length === 0;
+            });
+        });
+
+        // Submit answer
+        document.getElementById('submit-btn').addEventListener('click', async function() {
+            if (selectedAnswers.length === 0 || answered) return;
+
+            answered = true;
+            this.style.display = 'none';
+            document.getElementById('next-btn').style.display = 'inline-block';
+
+            // Send answer to server
+            const response = await fetch('/answer', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ selected: selectedAnswers })
+            });
+
+            const result = await response.json();
+
+            // Show feedback
+            const feedbackSection = document.getElementById('feedback-section');
+            const feedbackResult = document.getElementById('feedback-result');
+            const masteryProgress = document.getElementById('mastery-progress');
+            const explanation = document.getElementById('explanation');
+
+            feedbackSection.style.display = 'block';
+
+            if (result.is_correct) {
+                feedbackResult.innerHTML = '<span class="correct-icon">&#10004;</span> Correct!';
+                feedbackResult.className = 'feedback-result correct';
+            } else {
+                feedbackResult.innerHTML = '<span class="incorrect-icon">&#10008;</span> Incorrect';
+                feedbackResult.className = 'feedback-result incorrect';
+            }
+
+            // Show mastery progress
+            const correct = result.mastery.correct;
+            const needed = 4;
+            const isMastered = correct >= needed;
+
+            if (isMastered) {
+                masteryProgress.innerHTML = `<span class="mastery-complete">&#9733; Mastered! (${correct}/${needed} correct)</span>`;
+            } else {
+                const remaining = needed - correct;
+                masteryProgress.innerHTML = `<span class="mastery-in-progress">Progress: ${correct}/${needed} correct - ${remaining} more needed to master</span>`;
+            }
+
+            explanation.textContent = result.explanation;
+
+            // Highlight correct/incorrect options
+            document.querySelectorAll('.option-item').forEach(item => {
+                const letter = item.dataset.letter;
+                if (result.correct_answers.includes(letter)) {
+                    item.classList.add('correct');
+                } else if (selectedAnswers.includes(letter)) {
+                    item.classList.add('incorrect');
+                }
+            });
+
+            // Scroll to feedback
+            feedbackSection.scrollIntoView({ behavior: 'smooth' });
+        });
+
+        // Next question
+        document.getElementById('next-btn').addEventListener('click', async function() {
+            const response = await fetch('/next');
+            const data = await response.json();
+
+            if (data.completed) {
+                window.location.href = '/results';
+                return;
+            }
+
+            // Update question
+            document.getElementById('question-text').innerHTML = data.question.question;
+            if (data.question.correct.length > 1) {
+                document.getElementById('question-text').innerHTML +=
+                    ' <span class="multi-select-hint">(Select ' + data.question.correct.length + ' answers)</span>';
+            }
+
+            // Update options
+            const optionsList = document.getElementById('options-list');
+            optionsList.innerHTML = '';
+            data.question.options.forEach(option => {
+                const div = document.createElement('div');
+                div.className = 'option-item';
+                div.dataset.letter = option.letter;
+                div.innerHTML = `
+                    <span class="option-letter">${option.letter}</span>
+                    <span class="option-text">${option.text}</span>
+                `;
+                div.addEventListener('click', handleOptionClick);
+                optionsList.appendChild(div);
+            });
+
+            // Update progress
+            document.getElementById('current-num').textContent = data.current;
+            document.getElementById('progress-fill').style.width = (data.current / data.total * 100) + '%';
+            document.getElementById('domain-badge').textContent = data.question.domain;
+
+            // Reset state
+            selectedAnswers = [];
+            answered = false;
+            window.correctAnswers = data.question.correct;
+            window.isMultipleChoice = data.question.correct.length > 1;
+
+            // Hide feedback, show submit
+            document.getElementById('feedback-section').style.display = 'none';
+            document.getElementById('next-btn').style.display = 'none';
+            document.getElementById('submit-btn').style.display = 'inline-block';
+            document.getElementById('submit-btn').disabled = true;
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        function handleOptionClick() {
+            if (answered) return;
+
+            const letter = this.dataset.letter;
+
+            if (window.isMultipleChoice) {
+                if (selectedAnswers.includes(letter)) {
+                    selectedAnswers = selectedAnswers.filter(a => a !== letter);
+                    this.classList.remove('selected');
+                } else {
+                    selectedAnswers.push(letter);
+                    this.classList.add('selected');
+                }
+            } else {
+                document.querySelectorAll('.option-item').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                this.classList.add('selected');
+                selectedAnswers = [letter];
+            }
+
+            document.getElementById('submit-btn').disabled = selectedAnswers.length === 0;
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (answered && e.key === 'Enter') {
+                document.getElementById('next-btn').click();
+            } else if (!answered && e.key >= 'a' && e.key <= 'e') {
+                const letter = e.key.toUpperCase();
+                const option = document.querySelector(`.option-item[data-letter="${letter}"]`);
+                if (option) option.click();
+            } else if (!answered && e.key === 'Enter' && selectedAnswers.length > 0) {
+                document.getElementById('submit-btn').click();
+            }
+        });
+    </script>
+</body>
+</html>
